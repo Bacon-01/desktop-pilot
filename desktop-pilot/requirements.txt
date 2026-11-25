@@ -1,4 +1,0 @@
-# Runtime dependencies for Desktop Pilot.
-# Python 3.10+ on Windows 10/11.
-Pillow>=10.0
-uiautomation>=2.0.18

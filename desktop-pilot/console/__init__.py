@@ -1,1 +1,0 @@
-"""Desktop Pilot console package."""

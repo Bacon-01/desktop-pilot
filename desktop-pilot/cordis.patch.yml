@@ -1,6 +1,0 @@
-# Read by `dsh plugin add` and merged into the target profile.
-# Desktop Pilot has no client bundle and no configuration: it only registers
-# its bundled skill provider on the host skill registry.
-- insert:
-    - id: desktop-pilot
-      name: dsh-desktop-pilot
