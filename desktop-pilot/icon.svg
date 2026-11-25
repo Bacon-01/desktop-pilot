@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Desktop Pilot">
+  <rect width="128" height="128" rx="28" fill="#0b1220"/>
+  <rect x="18" y="24" width="92" height="60" rx="8" fill="none" stroke="#7dd3fc" stroke-width="4"/>
+  <path d="M46 93h36M64 84v9" stroke="#7dd3fc" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="64" cy="54" r="14" fill="none" stroke="#f8fafc" stroke-width="3"/>
+  <path d="M64 34v8M64 66v8M44 54h8M76 54h8" stroke="#f8fafc" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="64" cy="54" r="3" fill="#f97316"/>
+  <path d="M92 96l10 10M102 96l-10 10" stroke="#f97316" stroke-width="4" stroke-linecap="round"/>
+</svg>

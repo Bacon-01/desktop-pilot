@@ -1,0 +1,70 @@
+{
+  "name": "dsh-desktop-pilot",
+  "version": "0.1.0",
+  "description": "Windows desktop control for DeepSeek Harness: see the screen, find controls by UI Automation, click, type Chinese/emoji, press keys, drag, and OCR-verify the result. Native DSH skill, no vision model required, every action returns JSON.",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "desktop",
+    "windows",
+    "ui-automation",
+    "uia",
+    "ocr",
+    "rpa",
+    "computer-use",
+    "gui-automation",
+    "skill"
+  ],
+  "author": {
+    "name": "Bacon-01",
+    "url": "https://github.com/Bacon-01"
+  },
+  "homepage": "https://github.com/Bacon-01/desktop-pilot#readme",
+  "bugs": {
+    "url": "https://github.com/Bacon-01/desktop-pilot/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bacon-01/desktop-pilot.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json",
+    "./SKILL.md": "./SKILL.md"
+  },
+  "icon": "./icon.svg",
+  "files": [
+    "SKILL.md",
+    "README.md",
+    "DESIGN.md",
+    "LICENSE",
+    "icon.svg",
+    "cordis.patch.yml",
+    "requirements.txt",
+    "START_HERE.cmd",
+    "bin",
+    "lib",
+    "scripts",
+    "console",
+    "tests",
+    "docs"
+  ],
+  "engines": {
+    "dsh": ">=0.2.1",
+    "node": ">=20"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "check": "node tests/plugin_test.mjs",
+    "doctor": "python bin/dp.py doctor"
+  }
+}
