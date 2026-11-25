@@ -1,7 +1,7 @@
 {
   "name": "dsh-desktop-pilot",
   "version": "0.1.0",
-  "description": "Windows desktop control for DeepSeek Harness: see the screen, find controls by UI Automation, click, type Chinese/emoji, press keys, drag, and OCR-verify the result. Native DSH skill, no vision model required, every action returns JSON.",
+  "description": "给 DSH 装上 Windows 桌面的眼睛和手：优先用 UI Automation 找控件，OCR 兜底，支持点击、输入中文/emoji、按键、拖拽，并用读回验证结果。原生 DSH 技能，不依赖视觉模型，每条动作返回 JSON。",
   "keywords": [
     "dsh",
     "dsh-plugin",
