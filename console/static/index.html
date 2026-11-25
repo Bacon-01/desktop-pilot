@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desktop Pilot — 观察台</title>
+<style>
+  :root {
+    --bg: #0b0e12;
+    --panel: #11161d;
+    --panel-2: #161d26;
+    --line: #24303d;
+    --text: #d9e2ec;
+    --muted: #7f8fa3;
+    --accent: #5eead4;
+    --accent-2: #fbbf24;
+    --danger: #fb7185;
+    --ok: #34d399;
+    --mono: ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(94,234,212,.10), transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, rgba(251,191,36,.07), transparent 55%),
+      var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
+    font-size: 14px;
+    overflow: hidden;
+  }
+  header {
+    height: 58px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(11,14,18,.86);
+    backdrop-filter: blur(10px);
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
+  .brand b { font-size: 16px; letter-spacing: .4px; }
+  .brand span { color: var(--muted); font-family: var(--mono); font-size: 11px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 12px var(--ok); }
+  .dot.stopped { background: var(--danger); box-shadow: 0 0 12px var(--danger); }
+  .status { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+  .spacer { flex: 1; }
+  button {
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--text);
+    padding: 8px 13px;
+    border-radius: 9px;
+    cursor: pointer;
+    font: inherit;
+    transition: border-color .15s, background .15s, transform .05s;
+  }
+  button:hover { border-color: #3b4c5f; background: #1b2430; }
+  button:active { transform: translateY(1px); }
+  button.danger { border-color: rgba(251,113,133,.45); color: #fecdd3; background: rgba(251,113,133,.10); }
+  button.danger:hover { background: rgba(251,113,133,.18); }
+  button.good { border-color: rgba(52,211,153,.45); color: #bbf7d0; background: rgba(52,211,153,.10); }
+  button:disabled { opacity: .45; cursor: default; }
+  main {
+    height: calc(100% - 58px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 390px;
+    gap: 0;
+  }
+  .viewer {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-right: 1px solid var(--line);
+  }
+  .toolbar {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(17,22,29,.65);
+  }
+  select {
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 7px 9px;
+    font: inherit;
+    max-width: 360px;
+  }
+  .screen-wrap {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    padding: 14px;
+    overflow: hidden;
+    background:
+      linear-gradient(45deg, rgba(255,255,255,.018) 25%, transparent 25%) 0 0/24px 24px,
+      linear-gradient(-45deg, rgba(255,255,255,.018) 25%, transparent 25%) 0 0/24px 24px;
+  }
+  #shot {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border: 1px solid #2a3948;
+    border-radius: 12px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.5);
+    background: #06080b;
+  }
+  #shot.hidden { display: none; }
+  .placeholder { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+  .hud {
+    position: absolute;
+    left: 24px;
+    bottom: 24px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #b7c4d3;
+  }
+  .chip {
+    background: rgba(11,14,18,.78);
+    border: 1px solid var(--line);
+    padding: 5px 8px;
+    border-radius: 7px;
+    backdrop-filter: blur(6px);
+  }
+  aside {
+    overflow: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(17,22,29,.42);
+  }
+  .card {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .card h2 {
+    margin: 0;
+    padding: 11px 12px;
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card .body { padding: 10px 12px; }
+  .kv { display: grid; grid-template-columns: 88px 1fr; gap: 6px 8px; font-family: var(--mono); font-size: 12px; }
+  .kv .k { color: var(--muted); }
+  .kv .v { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .list { max-height: 248px; overflow: auto; }
+  .win {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 7px 12px;
+    border-bottom: 1px solid rgba(36,48,61,.6);
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .win:hover { background: rgba(94,234,212,.05); }
+  .win.active { background: rgba(94,234,212,.09); }
+  .win .t { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .win .p { color: var(--muted); font-family: var(--mono); font-size: 10px; }
+  .log { max-height: 220px; overflow: auto; font-family: var(--mono); font-size: 11px; line-height: 1.55; }
+  .log div { padding: 2px 0; border-bottom: 1px solid rgba(36,48,61,.35); color: #a9b7c8; }
+  .log .a { color: var(--accent); }
+  .log .e { color: var(--danger); }
+  pre {
+    margin: 0;
+    max-height: 220px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #b9c7d8;
+  }
+  .footer-note { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 2px 10px; }
+  @media (max-width: 1000px) {
+    main { grid-template-columns: 1fr; }
+    aside { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b>Desktop Pilot</b><span>OBSERVATION CONSOLE</span></div>
+  <div class="dot" id="dot"></div>
+  <div class="status" id="status">connecting…</div>
+  <div class="spacer"></div>
+  <button id="btnOcr">OCR 当前画面</button>
+  <button id="btnRefresh">刷新</button>
+  <button id="btnStop" class="danger">STOP</button>
+  <button id="btnResume" class="good">RESUME</button>
+</header>
+
+<main>
+  <section class="viewer">
+    <div class="toolbar">
+      <select id="windowSelect">
+        <option value="">整个屏幕</option>
+      </select>
+      <button id="btnShot">截取一帧</button>
+      <span class="status" id="shotInfo">—</span>
+    </div>
+    <div class="screen-wrap">
+      <img id="shot" class="hidden" alt="desktop capture">
+      <div class="placeholder" id="placeholder">等待画面…</div>
+      <div class="hud">
+        <span class="chip" id="hudSize">—</span>
+        <span class="chip" id="hudStop">RUNNING</span>
+        <span class="chip" id="hudTime">—</span>
+      </div>
+    </div>
+  </section>
+
+  <aside>
+    <div class="card">
+      <h2>目标 <span class="status" id="targetKind">屏幕</span></h2>
+      <div class="body">
+        <div class="kv" id="targetInfo">
+          <div class="k">状态</div><div class="v">连接中</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>窗口 <span class="status" id="winCount">0</span></h2>
+      <div class="list" id="winList"></div>
+    </div>
+
+    <div class="card">
+      <h2>动作日志</h2>
+      <div class="body log" id="logList"></div>
+    </div>
+
+    <div class="card">
+      <h2>OCR 结果</h2>
+      <div class="body"><pre id="ocrOut">点 “OCR 当前画面” 读取屏幕文字。</pre></div>
+    </div>
+
+    <div class="footer-note">
+      本页面只绑定 127.0.0.1。STOP / RESUME 需要启动时生成的 token。
+      画面与日志仅用于观察，不提供远程点击或输入接口。
+    </div>
+  </aside>
+</main>
+
+<script>
+const TOKEN = __DP_TOKEN__;
+const $ = (id) => document.getElementById(id);
+let selected = "";
+let busy = false;
+let lastShotUrl = null;
+let pollTimer = null;
+
+async function api(path, options = {}) {
+  const res = await fetch(path, { cache: "no-store", ...options });
+  const type = res.headers.get("content-type") || "";
+  if (type.includes("application/json")) {
+    return await res.json();
+  }
+  return res;
+}
+
+function setStatus(text, stopped = false) {
+  $("status").textContent = text;
+  $("dot").classList.toggle("stopped", stopped);
+  $("hudStop").textContent = stopped ? "STOPPED" : "RUNNING";
+  $("hudStop").style.color = stopped ? "var(--danger)" : "var(--accent)";
+}
+
+async function refreshStatus() {
+  try {
+    const data = await api("/api/status");
+    const project = data.project || {};
+    const stopped = !!project.stopped;
+    setStatus(stopped ? "STOP 已触发" : "运行中 · 127.0.0.1", stopped);
+    const fg = data.foreground;
+    if (fg) {
+      $("targetInfo").innerHTML = `
+        <div class="k">前台</div><div class="v" title="${escapeHtml(fg.title || "")}">${escapeHtml(fg.title || "(无标题)")}</div>
+        <div class="k">进程</div><div class="v">${escapeHtml(fg.process || "?")} · ${fg.pid}</div>
+        <div class="k">窗口</div><div class="v">${fg.handle}</div>
+        <div class="k">区域</div><div class="v">${(fg.rect || []).join(", ")}</div>
+        <div class="k">状态</div><div class="v">${escapeHtml(fg.state || "")}</div>
+      `;
+    }
+    $("targetKind").textContent = selected ? "窗口" : "屏幕";
+    $("hudTime").textContent = new Date().toLocaleTimeString();
+  } catch (err) {
+    setStatus("连接失败 · " + err.message, true);
+  }
+}
+
+async function refreshWindows() {
+  try {
+    const data = await api("/api/windows");
+    const list = data.windows || [];
+    $("winCount").textContent = list.length;
+    const select = $("windowSelect");
+    const current = select.value;
+    select.innerHTML = `<option value="">整个屏幕</option>`;
+    const box = $("winList");
+    box.innerHTML = "";
+    for (const w of list.slice(0, 80)) {
+      const opt = document.createElement("option");
+      opt.value = String(w.handle);
+      opt.textContent = `${w.title || "(无标题)"} — ${w.process || "?"}`;
+      select.appendChild(opt);
+
+      const row = document.createElement("div");
+      row.className = "win" + (String(w.handle) === String(current) ? " active" : "");
+      row.innerHTML = `<div class="t" title="${escapeHtml(w.title || "")}">${escapeHtml(w.title || "(无标题)")}</div><div class="p">${escapeHtml(w.process || "?")}</div>`;
+      row.onclick = () => {
+        select.value = String(w.handle);
+        selected = String(w.handle);
+        refreshShot();
+      };
+      box.appendChild(row);
+    }
+    if ([...select.options].some(o => o.value === current)) select.value = current;
+  } catch (err) {
+    $("winCount").textContent = "!";
+  }
+}
+
+async function refreshLog() {
+  try {
+    const data = await api("/api/log?tail=30");
+    const box = $("logList");
+    box.innerHTML = "";
+    for (const e of (data.events || []).reverse()) {
+      const div = document.createElement("div");
+      const cls = e.ok === false ? "e" : "a";
+      div.innerHTML = `<span class="${cls}">${escapeHtml(e.action || "?")}</span> ${escapeHtml((e.ts || "").slice(11, 19))} ${escapeHtml(summary(e.payload))}`;
+      box.appendChild(div);
+    }
+  } catch (err) {}
+}
+
+function summary(payload) {
+  if (!payload || typeof payload !== "object") return "";
+  const keys = Object.keys(payload).slice(0, 5);
+  return keys.map(k => `${k}=${String(payload[k]).slice(0, 40)}`).join(" ");
+}
+
+async function refreshShot() {
+  if (busy) return;
+  busy = true;
+  try {
+    const q = selected ? `?window=${encodeURIComponent(selected)}&t=${Date.now()}` : `?t=${Date.now()}`;
+    const res = await fetch(`/api/screen${q}`, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const img = $("shot");
+    img.onload = () => {
+      $("hudSize").textContent = `${img.naturalWidth} × ${img.naturalHeight}`;
+      $("shotInfo").textContent = selected ? `窗口 ${selected}` : "全屏";
+      $("placeholder").style.display = "none";
+      img.classList.remove("hidden");
+      if (lastShotUrl) URL.revokeObjectURL(lastShotUrl);
+      lastShotUrl = url;
+    };
+    img.src = url;
+  } catch (err) {
+    $("shotInfo").textContent = "截图失败: " + err.message;
+  } finally {
+    busy = false;
+  }
+}
+
+async function doAction(path) {
+  try {
+    const res = await fetch(path, { method: "POST", headers: { "X-DP-Token": TOKEN } });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || "action failed");
+    await refreshStatus();
+    await refreshLog();
+  } catch (err) {
+    setStatus("操作失败: " + err.message, true);
+  }
+}
+
+async function runOcr() {
+  $("ocrOut").textContent = "识别中…";
+  try {
+    const q = selected ? `?window=${encodeURIComponent(selected)}` : "";
+    const data = await api(`/api/ocr${q}`);
+    if (!data.ok) throw new Error(data.error || "OCR failed");
+    const lines = (data.lines || []).map(l => `[${(l.rect || []).join(",")}] ${l.text}`);
+    $("ocrOut").textContent = lines.length ? lines.join("\n") : "(没有识别到文字)";
+  } catch (err) {
+    $("ocrOut").textContent = "OCR 失败: " + err.message;
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+$("windowSelect").addEventListener("change", (e) => {
+  selected = e.target.value;
+  refreshShot();
+  refreshStatus();
+});
+$("btnRefresh").onclick = () => { refreshStatus(); refreshWindows(); refreshLog(); refreshShot(); };
+$("btnShot").onclick = refreshShot;
+$("btnStop").onclick = () => doAction("/api/stop");
+$("btnResume").onclick = () => doAction("/api/resume");
+$("btnOcr").onclick = runOcr;
+
+(async function init() {
+  await refreshStatus();
+  await refreshWindows();
+  await refreshLog();
+  await refreshShot();
+  pollTimer = setInterval(() => {
+    refreshShot();
+    refreshStatus();
+    refreshLog();
+  }, 1500);
+  setInterval(refreshWindows, 5000);
+})();
+</script>
+</body>
+</html>
