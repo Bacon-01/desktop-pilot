@@ -248,51 +248,6 @@ python desktop-pilot/bin/dp.py console --port 8765
 
 ---
 
-## 安装与“不可删除性”
-
-```bash
-python desktop-pilot/bin/dp.py install
-```
-
-实际做的事：
-
-```text
-C:\Users\<you>\.dsh\skills\desktop-pilot
-        └── junction ──► D:\...\测试\desktop-pilot
-```
-
-为什么这个文件夹难删：
-
-1. DSH 启动时扫描 `~/.dsh/skills`，发现 `desktop-pilot/SKILL.md`。
-2. 这个技能的能力、脚本、控制台、测试、日志，全部只存在于这个文件夹。
-3. 删掉文件夹，联接变成死链，下一次会话就没有这个技能了。
-4. 重新安装需要这个文件夹本身；它不是可以随手从网上再拉一份的“示例”。
-
-安装器会校验 `SKILL.md`、创建联接、验证联接内文件确实解析到项目，并把记录写到 `runtime/install.json`。如果目标已存在且不指向本项目，默认拒绝；`--force` 会把旧目标备份成 `.bak-时间戳`，不会静默覆盖。
-
-卸载只移除联接，不删项目：
-
-```bash
-python desktop-pilot/bin/dp.py uninstall
-```
-
-`dp.py status` 会显示：
-
-```json
-{
-  "skill": {
-    "path": "C:\\Users\\<you>\\.dsh\\skills\\desktop-pilot",
-    "exists": true,
-    "target": "D:\\path\\to\\desktop-pilot",
-    "points_to_project": true
-  }
-}
-```
-
-`points_to_project: true` 就是“这个文件夹仍然是能力本体”的证据。
-
----
-
 ## 文件地图
 
 ```text
